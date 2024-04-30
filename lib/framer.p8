@@ -89,7 +89,7 @@ framer {
 
     ; Task work functions can check this (global) value for their argument.
     ; The value that was passed to addOneShot is placed here before the
-    ; workFunc is called. For frame tasks, this will be ==workIndex.
+    ; work function is called. For frame tasks, this will be ==workIndex.
     uword @zp workArg = 0
 
     ; ---------------------------------------------------------------
@@ -118,6 +118,7 @@ framer {
         while workIndex != startTail {
             workFunc = oneShots[workIndex]
             workArg = oneShotArgs[workIndex]
+            ; Advance the head
             workIndex = (workIndex + 1) & ONESHOT_MASK
             oneShotHead = workIndex
             dispatch_()
