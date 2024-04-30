@@ -100,7 +100,7 @@ framer {
         for workIndex in 0 to frameTaskCount - 1 {
             workFunc = frameTasks[workIndex]
             workArg = workIndex
-            dispatch_()
+            void call(workFunc)
             if done {
                 return
             }
@@ -121,17 +121,10 @@ framer {
             ; Advance the head
             workIndex = (workIndex + 1) & ONESHOT_MASK
             oneShotHead = workIndex
-            dispatch_()
+            void call(workFunc)
             if done {
                 return
             }
-        }
-    }
-
-    ; Utility function used to JSR to an arbitrary address.
-    sub dispatch_() {
-        if workFunc != 0 {
-            goto workFunc
         }
     }
 
