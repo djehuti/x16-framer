@@ -100,7 +100,7 @@ framer {
         for workIndex in 0 to frameTaskCount - 1 {
             workFunc = frameTasks[workIndex]
             workArg = workIndex
-            void = call(workFunc)
+            void call(workFunc)
             if done {
                 return
             }
@@ -121,7 +121,7 @@ framer {
             ; Advance the head
             workIndex = (workIndex + 1) & ONESHOT_MASK
             oneShotHead = workIndex
-            void = call(workFunc)
+            void call(workFunc)
             if done {
                 return
             }
