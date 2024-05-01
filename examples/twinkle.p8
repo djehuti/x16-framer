@@ -28,7 +28,7 @@ app {
         void = framer.addFrameTask(animatePalette)
 
         ; Start the scroller
-        void = framer.addFrameTask(scroller)
+        void = framer.addFrameTask(vScroller)
         void = framer.addFrameTask(hScroller)
     }
 
