@@ -3,7 +3,7 @@
 # -----------------------------
 # Definitions
 
-PROGS=hworld.prg twinkle.prg
+PROGS=hworld.prg twinkle.prg ants.prg
 
 P8COMPILE=p8compile
 P8FLAGS=-target cx16 -quietasm -warnshadow -srcdirs ../lib
@@ -22,6 +22,7 @@ clean:
 
 hworld.prg: hworld.p8 ../lib/framer.p8 ../lib/framer_main.p8
 twinkle.prg: twinkle.p8 ../lib/framer.p8 ../lib/framer_main.p8
+ants.prg: ants.p8 ../lib/framer.p8 ../lib/framer_main.p8
 
 # -----------------------------
 # Administrivia
