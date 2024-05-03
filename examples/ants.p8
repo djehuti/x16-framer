@@ -134,8 +134,8 @@ app {
 
         ; If we get here, it's time for the ant to do _something_.
 
-        ; About 1/128 of the time, it will just go away when its turn comes.
-        if math.rnd() & $7F == 0 {
+        ; About 1/ANT_DEATH_ODDS of the time, it will just go away when its turn comes.
+        if math.randrange(ANT_DEATH_ODDS) == 0 {
             eraseAnt()
             antCount--
             return ; without rescheduling this ant for another frame
@@ -217,9 +217,9 @@ app {
     ; Configuration parameters
     const byte  COLUMNS        = 64
     const byte  ROWS           = 25
-    const ubyte MAX_ANTS       = 30
+    const ubyte MAX_ANTS       = 50
     const ubyte SPAWN_RANGE    = 240 ; maximum # of frames between spawns
-    const ubyte SPAWN_TIME_MIN = 10  ; minimum # of frames between spawns
+    const ubyte SPAWN_TIME_MIN = 30  ; minimum # of frames between spawns
     const ubyte ANT_TIME_MIN   = 10  ; minimum # of frames between ant moves
     const ubyte HORIZONTAL_ANT = $68 ; character representing a horizontal ant
     const ubyte VERTICAL_ANT   = $5C ; vertical ant
@@ -243,14 +243,15 @@ app {
     const ubyte MESSAGE_TICK   = 40
     const ubyte UNMESSAGE_TICK = 0
 
+    ; Population thresholds for speeding up ant spawning
+    const ubyte CRITICAL_ANT_SHORTAGE = 5
+    const ubyte UNDERPOPULATED = 8
+    const ubyte GETTING_THIN = 13
+    const ubyte ANT_DEATH_ODDS = 200
+
     ; Keeping track of the count to keep from overflowing, and to
     ; use it to affect the spawn rate (and so we can show it).
     ubyte antCount = 0
-
-    ; Population thresholds for speeding up ant spawning
-    ubyte CRITICAL_ANT_SHORTAGE = 5
-    ubyte UNDERPOPULATED = 8
-    ubyte GETTING_THIN = 13
 
     ; The countdown timer for blinking the escape message
     ubyte @zp msgTick = MESSAGE_TICK + 1
