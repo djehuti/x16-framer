@@ -166,7 +166,7 @@ app {
     const ubyte ANT_TIME_MIN = 24
     ubyte antCount
     ubyte antch = $68 ; bottom half hash
-    ubyte @zp msgTick = 1
+    ubyte @zp msgTick = 41
     ubyte @zp spawnTimer = 0
     ubyte @zp ticks
     byte @zp antx
