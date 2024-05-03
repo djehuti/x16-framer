@@ -81,7 +81,7 @@ app {
 
     sub spawnAnt() {
         antCount++
-        ticks = 0
+        ticks = ANT_TIME_MIN + math.randrange(31-ANT_TIME_MIN)
         antx = math.randrange(COLUMNS) as byte
         anty = math.randrange(ROWS) as byte
         drawAnt()
