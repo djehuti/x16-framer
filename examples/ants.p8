@@ -4,7 +4,7 @@
 %zeropage basicsafe
 %launcher basic
 
-%import floats
+%import math
 %import syslib
 %import textio
 
@@ -13,8 +13,15 @@
 
 app {
     sub start() {
+        uword r1 = cbm.RDTIM16()
+        sys.waitvsync()
+        uword r2 = cbm.RDTIM16()
+        math.rndseed(r1, r2)
+        void cx16.screen_mode(9, false)
         void framer.addFrameTask(spawner)
+        void framer.addFrameTask(showAntCount)
         void framer.addFrameTask(populationControl)
+        void framer.addFrameTask(watchForEsc)
     }
 
     sub spawner() {
@@ -22,100 +29,142 @@ app {
             spawnTimer--
             return
         }
-        spawnAnt()
-        spawnTimer = (floats.rnd() * 120) as ubyte
+        if antCount < MAX_ANTS {
+            spawnAnt()
+        }
+        spawnTimer = math.randrange(SPAWN_RANGE)
+    }
+
+    sub showAntCount() {
+        txt.plot(0, 24)
+        txt.color(12)
+        if antCount < 10 {
+            txt.print(" ")
+        }
+        txt.print_ub(antCount)
     }
 
     sub populationControl() {
+        ; spawn a little faster the fewer ants there are
         if antCount < 5 {
             spawnTimer--
         }
-        if antCount < 10 {
+        if antCount < 8 {
             ; yes this will decrement it again for <5
             spawnTimer--
         }
-        if antCount < 15 {
+        if antCount < 13 {
             spawnTimer--
         }
-        if antCount > 50 {
-            spawnTimer = 20
+    }
+
+    sub watchForEsc() {
+        ubyte @zp ch
+        void, ch = cbm.GETIN()
+        if ch == 27 {
+            framer.stop()
+            framer.reset()
+            void framer.addOneShot(cbm.CINT, 0)
+            framer.resume()
         }
+        if msgTick == 40 {
+            txt.plot(43, 24)
+            txt.color(12)
+            txt.print("press esc to quit")
+        }
+        if msgTick == 0 {
+            txt.plot(43, 24)
+            txt.print("                 ")
+        }
+        msgTick--
     }
 
     sub spawnAnt() {
         antCount++
-        ticks = (floats.rnd() * 32) as ubyte
-        antx = (floats.rnd() * 64) as byte
-        anty = (floats.rnd() * 32) as byte
+        ticks = math.randrange(32)
+        antx = math.randrange(COLUMNS) as byte
+        anty = math.randrange(ROWS) as byte
         drawAnt()
         reschedule()
     }
 
     sub animAnt() {
-        ticks = lsb((framer.workArg >> 11) & $1F)
-        if ticks != 0 {
-            if ticks < $18 {
-                ticks--
-                reschedule()
-                return
-            }
-        }
-        antx = lsb(framer.workArg & $3F) as byte
-        anty = lsb((framer.workArg >> 6) & $1F) as byte
-        eraseAnt()
+        ticks = lsb(framer.workArg >> 11) & $1F
+        antx = lsb(framer.workArg) & $3F as byte
+        anty = lsb(framer.workArg >> 6) & $1F as byte
 
-        float r = floats.rnd()
-        if r < 0.03 {
-            ; Ant disappears after some # of turns
+        if ticks != 0 and ticks < $1A {
+            ticks--
+            reschedule()
+            return
+        }
+
+        ; Ant disappears after some # of turns (1/64 chance per move)
+        if math.rnd() & $3F == 0 {
+            eraseAnt()
             antCount--
             return
         }
 
-        byte delta = ((r * r * 3) - 1) as byte
-        if delta < 0 and antx <= 0 {
-            delta = 0
-            antx = 0
+        ubyte delta = math.rnd()
+        if delta & %00000001 != 0 {     ; are we going to move?
+            eraseAnt()
+            if delta & %00000010 == 0 { ; x or y?
+                antch = $68
+                if delta & %00000100 == 0 { ; left or right?
+                    antx++
+                } else {
+                    antx--
+                }
+            } else {
+                antch = $5C
+                if delta & %00000100 == 0 {
+                    anty++
+                } else {
+                    anty--
+                }
+            }
+            if antx < 0 {
+                antx = 0
+            }
+            if antx > COLUMNS-1 {
+                antx = COLUMNS-1
+            }
+            if anty < 0 {
+                anty = 0
+            }
+            if anty > ROWS-1 {
+                anty = ROWS-1
+            }
+            drawAnt()
         }
-        if delta > 0 and antx >= 63 {
-            delta = 0
-            antx = 63
-        }
-        antx = antx + delta
 
-        r = floats.rnd()
-        delta = ((r * r * 3) - 1) as byte
-        if delta < 0 and anty <= 0 {
-            delta = 0
-            anty = 0
-        }
-        if delta > 0 and anty >= 31 {
-            delta = 0
-            anty = 31
-        }
-        anty = anty + delta
-
-        drawAnt()
-
-        r = floats.rnd()
-        ticks = (31 - (r * r * 32)) as ubyte
+        ticks = 24 + math.randrange(7)
         reschedule()
     }
 
     sub drawAnt() {
-        txt.plot(antx as ubyte, anty as ubyte)
-        txt.print("@")
+        txt.setcc2(antx as ubyte, anty as ubyte, antch, 9)
     }
 
     sub eraseAnt() {
-        txt.plot(antx as ubyte, anty as ubyte)
-        txt.print(" ")
+        txt.setcc2(antx as ubyte, anty as ubyte, $20, 0)
     }
 
     sub reschedule() {
-        void framer.addOneShot(animAnt, (ticks as uword << 11) | (anty as uword << 6 ) | antx as uword)
+        void framer.addOneShot(animAnt,
+            (((ticks & $1F) as uword) << 11) |
+            (((anty  & $1F) as uword) <<  6) |
+            (((antx  & $3F) as uword)      ))
     }
 
+    const ubyte MAX_ANTS = 30
+    const byte COLUMNS = 64
+    const byte ROWS = 25
+    const ubyte SPAWN_RANGE = 240
     ubyte antCount
+    ubyte antch = $68 ; bottom half hash
+    ubyte @zp msgTick = 1
     ubyte @zp spawnTimer = 0
     ubyte @zp ticks
     byte @zp antx
