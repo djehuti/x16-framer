@@ -32,7 +32,7 @@ app {
         if antCount < MAX_ANTS {
             spawnAnt()
         }
-        spawnTimer = math.randrange(SPAWN_RANGE)
+        spawnTimer = SPAWN_TIME_MIN + math.randrange(SPAWN_RANGE-SPAWN_TIME_MIN)
     }
 
     sub showAntCount() {
@@ -81,7 +81,7 @@ app {
 
     sub spawnAnt() {
         antCount++
-        ticks = math.randrange(32)
+        ticks = 0
         antx = math.randrange(COLUMNS) as byte
         anty = math.randrange(ROWS) as byte
         drawAnt()
@@ -107,18 +107,18 @@ app {
         }
 
         ubyte delta = math.rnd()
-        if delta & %00000001 != 0 {     ; are we going to move?
+        if delta & %00000011 == 0 {     ; are we going to move?
             eraseAnt()
-            if delta & %00000010 == 0 { ; x or y?
+            if delta & %00000100 == 0 { ; x or y?
                 antch = $68
-                if delta & %00000100 == 0 { ; left or right?
+                if delta & %00001000 == 0 { ; left or right?
                     antx++
                 } else {
                     antx--
                 }
             } else {
                 antch = $5C
-                if delta & %00000100 == 0 {
+                if delta & %00001000 == 0 {
                     anty++
                 } else {
                     anty--
@@ -139,7 +139,7 @@ app {
             drawAnt()
         }
 
-        ticks = 24 + math.randrange(7)
+        ticks = ANT_TIME_MIN + math.randrange(31-ANT_TIME_MIN)
         reschedule()
     }
 
@@ -162,6 +162,8 @@ app {
     const byte COLUMNS = 64
     const byte ROWS = 25
     const ubyte SPAWN_RANGE = 240
+    const ubyte SPAWN_TIME_MIN = 10
+    const ubyte ANT_TIME_MIN = 24
     ubyte antCount
     ubyte antch = $68 ; bottom half hash
     ubyte @zp msgTick = 1
