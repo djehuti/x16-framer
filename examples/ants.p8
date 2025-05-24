@@ -146,16 +146,16 @@ app {
         ; our movement.
         ubyte delta = math.rnd()
         ; Low 2 bits are "move now?" -- we only move 1/4 of the time.
-        if delta & %00000011 == 0 {     ; are we going to move?
+        if delta & MOVE_NOW_MASK == 0 {     ; are we going to move?
             ; We are going to move, so remove the current ant.
             eraseAnt()
              ; The next bit controls whether we move horizontally or vertically.
              ; This is its own bit so we won't move diagonally.
-            if delta & %00000100 == 0 {
+            if delta & MOVE_AXIS_MASK == 0 {
                 ; We're going to move horizontally. Make the ant horizontal.
                 antch = HORIZONTAL_ANT
                 ; Are we going to move left or right?
-                if delta & %00001000 == 0 {
+                if delta & MOVE_DIR_MASK == 0 {
                     antx++
                 } else {
                     antx--
@@ -164,7 +164,7 @@ app {
                 ; We're going to move vertically. Make the ant vertical.
                 antch = VERTICAL_ANT
                 ; Up or down?
-                if delta & %00001000 == 0 {
+                if delta & MOVE_DIR_MASK == 0 {
                     anty++
                 } else {
                     anty--
@@ -229,6 +229,11 @@ app {
 
     const ubyte ESCAPE = 27
     const ubyte SPACE  = 32
+
+    ; Movement control bit masks
+    const ubyte MOVE_NOW_MASK    = %00000011 ; Test against 0 for 1/4 chance to move
+    const ubyte MOVE_AXIS_MASK   = %00000100 ; 0 for horizontal, 1 for vertical
+    const ubyte MOVE_DIR_MASK    = %00001000 ; 0 for right/down, 1 for left/up
 
     ; Packing the ant state into the 16-bit workArg:
     const ubyte X_SHIFT     = 0    ; these are the LSBs
