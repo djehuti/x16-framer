@@ -25,11 +25,11 @@ app {
         control.start()
 
         ; Start the twinkler
-        void = framer.addFrameTask(animatePalette)
+        void framer.addFrameTask(animatePalette)
 
         ; Start the scroller
-        void = framer.addFrameTask(vScroller)
-        void = framer.addFrameTask(hScroller)
+        void framer.addFrameTask(vScroller)
+        void framer.addFrameTask(hScroller)
     }
 
     sub initscreen() {
@@ -209,7 +209,7 @@ app {
 ; This frame task watches for keystrokes and calls app.handleKey() for them.
 control {
     sub start() {
-        void = framer.addFrameTask(poll_)
+        void framer.addFrameTask(poll_)
     }
 
     sub poll_() {
